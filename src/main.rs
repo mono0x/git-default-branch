@@ -98,7 +98,7 @@ mod tests {
         let clone_dir = tmp.path().join("clone");
 
         fs::create_dir(&repo_dir).unwrap();
-        init_repo(&repo_dir, "main");
+        init_repo(&repo_dir, "default");
         commit(&repo_dir, "initial");
 
         Command::new("git")
@@ -111,6 +111,6 @@ mod tests {
             .unwrap();
 
         let result = run(clone_dir.to_str().unwrap()).unwrap();
-        assert_eq!(result, "main");
+        assert_eq!(result, "default");
     }
 }
