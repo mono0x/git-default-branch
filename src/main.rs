@@ -1,8 +1,21 @@
+use clap::Parser;
 use gix::bstr::ByteSlice;
 use std::process;
 
+#[derive(Parser)]
+#[command(version, about = "Get the default branch of a Git repository")]
+struct Args {
+    #[arg(short, long, default_value = ".")]
+    dir: String,
+
+    #[arg(short, long, default_value = "origin")]
+    remote: String,
+}
+
 fn main() {
-    match run(".") {
+    let args = Args::parse();
+
+    match run(&args.dir, &args.remote) {
         Ok(branch) => println!("{}", branch),
         Err(e) => {
             eprintln!("{}", e);
@@ -11,15 +24,15 @@ fn main() {
     }
 }
 
-fn run(path: &str) -> Result<String, Box<dyn std::error::Error>> {
+fn run(path: &str, remote: &str) -> Result<String, Box<dyn std::error::Error>> {
     let repo = gix::discover(path)?;
 
-    let branch = if let Ok(r) = repo.find_reference("refs/remotes/origin/HEAD") {
+    let branch = if let Ok(r) = repo.find_reference(&format!("refs/remotes/{}/HEAD", remote)) {
         let target = r.target();
         let name = target.try_name().ok_or("HEAD is not symbolic")?;
         name.as_bstr()
             .to_str()?
-            .strip_prefix("refs/remotes/origin/")
+            .strip_prefix(&format!("refs/remotes/{}/", remote))
             .ok_or("Invalid ref format")?
             .to_string()
     } else {
@@ -77,7 +90,7 @@ mod tests {
         init_repo(tmp.path(), "main");
         commit(tmp.path(), "initial");
 
-        let result = run(tmp.path().to_str().unwrap()).unwrap();
+        let result = run(tmp.path().to_str().unwrap(), "origin").unwrap();
         assert_eq!(result, "main");
     }
 
@@ -87,7 +100,7 @@ mod tests {
         init_repo(tmp.path(), "master");
         commit(tmp.path(), "initial");
 
-        let result = run(tmp.path().to_str().unwrap()).unwrap();
+        let result = run(tmp.path().to_str().unwrap(), "origin").unwrap();
         assert_eq!(result, "master");
     }
 
@@ -110,7 +123,7 @@ mod tests {
             .output()
             .unwrap();
 
-        let result = run(clone_dir.to_str().unwrap()).unwrap();
+        let result = run(clone_dir.to_str().unwrap(), "origin").unwrap();
         assert_eq!(result, "default");
     }
 }
