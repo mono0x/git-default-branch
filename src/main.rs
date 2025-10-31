@@ -27,23 +27,38 @@ fn main() {
 fn run(path: &str, remote: &str) -> Result<String, Box<dyn std::error::Error>> {
     let repo = gix::discover(path)?;
 
-    let branch = if let Ok(r) = repo.find_reference(&format!("refs/remotes/{}/HEAD", remote)) {
+    if let Ok(r) = repo.find_reference(&format!("refs/remotes/{}/HEAD", remote)) {
         let target = r.target();
         let name = target.try_name().ok_or("HEAD is not symbolic")?;
-        name.as_bstr()
+        return Ok(name
+            .as_bstr()
             .to_str()?
-            .strip_prefix(&format!("refs/remotes/{}/", remote))
+            .strip_prefix("refs/remotes/origin/")
             .ok_or("Invalid ref format")?
-            .to_string()
-    } else {
-        ["main", "master"]
-            .iter()
-            .find(|&&name| repo.find_reference(&format!("refs/heads/{}", name)).is_ok())
-            .ok_or("Could not determine default branch")?
-            .to_string()
-    };
+            .to_string());
+    }
 
-    Ok(branch)
+    let _ = std::process::Command::new("git")
+        .args(["remote", "set-head", remote, "--auto"])
+        .current_dir(path)
+        .output();
+
+    if let Ok(r) = repo.find_reference(&format!("refs/remotes/{}/HEAD", remote)) {
+        let target = r.target();
+        let name = target.try_name().ok_or("HEAD is not symbolic")?;
+        return Ok(name
+            .as_bstr()
+            .to_str()?
+            .strip_prefix("refs/remotes/origin/")
+            .ok_or("Invalid ref format")?
+            .to_string());
+    }
+
+    Ok(["main", "master"]
+        .iter()
+        .find(|&&name| repo.find_reference(&format!("refs/heads/{}", name)).is_ok())
+        .ok_or("Could not determine default branch")?
+        .to_string())
 }
 
 #[cfg(test)]
@@ -122,6 +137,32 @@ mod tests {
             ])
             .output()
             .unwrap();
+
+        let result = run(clone_dir.to_str().unwrap(), "origin").unwrap();
+        assert_eq!(result, "default");
+    }
+
+    #[test]
+    fn test_deleted_origin_head() {
+        let tmp = tempfile::tempdir().unwrap();
+        let repo_dir = tmp.path().join("repo");
+        let clone_dir = tmp.path().join("clone");
+
+        fs::create_dir(&repo_dir).unwrap();
+        init_repo(&repo_dir, "default");
+        commit(&repo_dir, "initial");
+
+        Command::new("git")
+            .args([
+                "clone",
+                repo_dir.to_str().unwrap(),
+                clone_dir.to_str().unwrap(),
+            ])
+            .output()
+            .unwrap();
+
+        let origin_head_file = clone_dir.join(".git/refs/remotes/origin/HEAD");
+        let _ = fs::remove_file(&origin_head_file);
 
         let result = run(clone_dir.to_str().unwrap(), "origin").unwrap();
         assert_eq!(result, "default");
