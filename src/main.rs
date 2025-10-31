@@ -38,11 +38,14 @@ fn run(path: &str, remote: &str) -> Result<String, Box<dyn std::error::Error>> {
             .to_string());
     }
 
+    // https://qiita.com/ymm1x/items/b22bddc9fbc192ae1a70
+    // https://stackoverflow.com/questions/28666357/how-to-get-default-git-branch/44750379#44750379
     let _ = std::process::Command::new("git")
         .args(["remote", "set-head", remote, "--auto"])
         .current_dir(path)
         .output();
 
+    // Retry
     if let Ok(r) = repo.find_reference(&format!("refs/remotes/{}/HEAD", remote)) {
         let target = r.target();
         let name = target.try_name().ok_or("HEAD is not symbolic")?;
@@ -54,6 +57,7 @@ fn run(path: &str, remote: &str) -> Result<String, Box<dyn std::error::Error>> {
             .to_string());
     }
 
+    // Fallback to common default branch names
     Ok(["main", "master"]
         .iter()
         .find(|&&name| repo.find_reference(&format!("refs/heads/{}", name)).is_ok())
