@@ -1,6 +1,6 @@
 [package]
 name = "git-default-branch"
-version = "0.20251108.14"
+version = "0.20251108.16"
 edition = "2024"
 
 [dependencies]
