@@ -369,7 +369,7 @@ dependencies = [
 
 [[package]]
 name = "git-default-branch"
-version = "0.20251108.16"
+version = "0.20251108.18"
 dependencies = [
  "clap",
  "gix",
