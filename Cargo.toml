@@ -8,7 +8,7 @@ lto = true
 strip = "symbols"
 
 [dependencies]
-gix = "0.74.1"
+gix = "0.75.0"
 clap = { version = "4.5", features = ["derive"] }
 
 [dev-dependencies]
