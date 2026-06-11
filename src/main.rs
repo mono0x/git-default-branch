@@ -24,18 +24,29 @@ fn main() {
     }
 }
 
+fn remote_head_branch(
+    repo: &gix::Repository,
+    remote: &str,
+) -> Result<Option<String>, Box<dyn std::error::Error>> {
+    let Ok(r) = repo.find_reference(&format!("refs/remotes/{}/HEAD", remote)) else {
+        return Ok(None);
+    };
+    let target = r.target();
+    let name = target.try_name().ok_or("HEAD is not symbolic")?;
+    Ok(Some(
+        name.as_bstr()
+            .to_str()?
+            .strip_prefix(&format!("refs/remotes/{}/", remote))
+            .ok_or("Invalid ref format")?
+            .to_string(),
+    ))
+}
+
 fn run(path: &str, remote: &str) -> Result<String, Box<dyn std::error::Error>> {
     let repo = gix::discover(path)?;
 
-    if let Ok(r) = repo.find_reference(&format!("refs/remotes/{}/HEAD", remote)) {
-        let target = r.target();
-        let name = target.try_name().ok_or("HEAD is not symbolic")?;
-        return Ok(name
-            .as_bstr()
-            .to_str()?
-            .strip_prefix("refs/remotes/origin/")
-            .ok_or("Invalid ref format")?
-            .to_string());
+    if let Some(branch) = remote_head_branch(&repo, remote)? {
+        return Ok(branch);
     }
 
     // https://qiita.com/ymm1x/items/b22bddc9fbc192ae1a70
@@ -45,16 +56,8 @@ fn run(path: &str, remote: &str) -> Result<String, Box<dyn std::error::Error>> {
         .current_dir(path)
         .output();
 
-    // Retry
-    if let Ok(r) = repo.find_reference(&format!("refs/remotes/{}/HEAD", remote)) {
-        let target = r.target();
-        let name = target.try_name().ok_or("HEAD is not symbolic")?;
-        return Ok(name
-            .as_bstr()
-            .to_str()?
-            .strip_prefix("refs/remotes/origin/")
-            .ok_or("Invalid ref format")?
-            .to_string());
+    if let Some(branch) = remote_head_branch(&repo, remote)? {
+        return Ok(branch);
     }
 
     // Fallback to common default branch names
@@ -143,6 +146,31 @@ mod tests {
             .unwrap();
 
         let result = run(clone_dir.to_str().unwrap(), "origin").unwrap();
+        assert_eq!(result, "default");
+    }
+
+    #[test]
+    fn test_non_origin_remote() {
+        let tmp = tempfile::tempdir().unwrap();
+        let repo_dir = tmp.path().join("repo");
+        let clone_dir = tmp.path().join("clone");
+
+        fs::create_dir(&repo_dir).unwrap();
+        init_repo(&repo_dir, "default");
+        commit(&repo_dir, "initial");
+
+        Command::new("git")
+            .args([
+                "clone",
+                "--origin",
+                "upstream",
+                repo_dir.to_str().unwrap(),
+                clone_dir.to_str().unwrap(),
+            ])
+            .output()
+            .unwrap();
+
+        let result = run(clone_dir.to_str().unwrap(), "upstream").unwrap();
         assert_eq!(result, "default");
     }
 
