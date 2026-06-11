@@ -1,6 +1,6 @@
 [package]
 name = "git-default-branch"
-version = "0.20260608.58"
+version = "0.20260611.61"
 edition = "2024"
 
 [profile.release]
