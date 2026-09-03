@@ -5,7 +5,8 @@ use std::process;
 #[derive(Parser)]
 #[command(version, about = "Get the default branch of a Git repository")]
 struct Args {
-    #[arg(short, long, default_value = ".")]
+    /// Run as if git-default-branch was started in <path>
+    #[arg(short = 'C', value_name = "path", default_value = ".")]
     dir: String,
 
     #[arg(short, long, default_value = "origin")]
