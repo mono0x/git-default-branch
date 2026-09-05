@@ -6,7 +6,6 @@
   "timezone": "Asia/Tokyo",
   "minimumReleaseAge": "2 days",
   "osvVulnerabilityAlerts": true,
-  "platformAutomerge": false,
   "automergeStrategy": "squash",
   "packageRules": [
     {
