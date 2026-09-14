@@ -70,6 +70,10 @@ fn run(path: &str, remote: &str) -> Result<String, Box<dyn std::error::Error>> {
 }
 
 #[cfg(test)]
+#[allow(
+    clippy::unwrap_used,
+    reason = "Test setup and assertions should fail immediately on errors."
+)]
 mod tests {
     use super::*;
     use std::fs;
