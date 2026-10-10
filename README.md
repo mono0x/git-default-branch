@@ -8,12 +8,6 @@ Install the tools and Git hook with `mise install` and `hk install`. Run
 `hk check --all` to check the repository, or `hk fix` to format changed files.
 Run `cargo clippy --all-targets --all-features -- -D warnings` separately.
 
-The hk checks include jactionlint for GitHub Actions workflows and composite actions, with
-ShellCheck for inline shell scripts. Both tools are version-pinned in
-`mise.toml`; the existing CI lint job runs the same checks through hk.
-Run `mise exec -- jactionlint` to check all workflows and actions directly. The repository
-uses the default security profile and requires pinned action commits and explicit permissions.
-
 ## Releasing
 
 Run the Release workflow manually on `main`. It updates `Cargo.toml` and
