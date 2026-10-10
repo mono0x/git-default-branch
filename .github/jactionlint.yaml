@@ -1,0 +1,4 @@
+profile: default
+rules:
+  unpinned-uses: error
+  missing-permissions: error
