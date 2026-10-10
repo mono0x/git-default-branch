@@ -1,6 +1,7 @@
 amends "package://github.com/jdx/hk/releases/download/v2.0.1/hk@2.0.1#/Config.pkl"
 
 import "package://github.com/jdx/hk/releases/download/v2.0.1/hk@2.0.1#/Builtins.pkl"
+import "package://github.com/jdx/hk/releases/download/v2.0.1/hk@2.0.1#/Config.pkl"
 
 local linters = new Mapping<String, Step> {
   ["cargo-fmt"] = Builtins.cargo_fmt
@@ -9,7 +10,22 @@ local linters = new Mapping<String, Step> {
   }
   ["pkl"] = Builtins.pkl
   ["pkl-format"] = Builtins.pkl_format
-  ["zizmor"] = Builtins.zizmor
+  ["jactionlint"] = new Step {
+    glob =
+      List(
+        ".github/workflows/*.yml",
+        ".github/workflows/*.yaml",
+        "**/action.yml",
+        "**/action.yaml",
+      )
+    batch = true
+    check = new Config.CommandSpec {
+      command = new Config.Command {
+        argv = List("mise", "exec", "--", "jactionlint", "{{files}}")
+      }
+      effect = "read"
+    }
+  }
 }
 
 hooks {
