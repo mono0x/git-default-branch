@@ -3,7 +3,7 @@ amends "package://github.com/jdx/hk/releases/download/v2.4.0/hk@2.4.0#/Config.pk
 import "package://github.com/jdx/hk/releases/download/v2.4.0/hk@2.4.0#/Builtins.pkl"
 import "package://github.com/jdx/hk/releases/download/v2.4.0/hk@2.4.0#/Config.pkl"
 
-local linters = new Mapping<String, Step> {
+steps {
   ["cargo-fmt"] = Builtins.cargo_fmt
   ["dprint"] = (Builtins.dprint) {
     glob = "**/*.{json,jsonc,md,yaml,yml,toml}"
@@ -51,20 +51,5 @@ local linters = new Mapping<String, Step> {
       }
       effect = "write"
     }
-  }
-}
-
-hooks {
-  ["pre-commit"] {
-    fix = true
-    stash = "git"
-    steps = linters
-  }
-  ["fix"] {
-    fix = true
-    steps = linters
-  }
-  ["check"] {
-    steps = linters
   }
 }
