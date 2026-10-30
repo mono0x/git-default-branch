@@ -1,4 +1,5 @@
 version: 2
+project_name: git-default-branch
 
 builds:
   - builder: rust
@@ -10,11 +11,8 @@ builds:
       - --release
       - --locked
 
-archives:
-  - formats: [binary]
-
 changelog:
-  use: github-native
+  disable: true
 
 checksum:
   name_template: checksums.txt
