@@ -1,6 +1,6 @@
 [package]
 name = "git-default-branch"
-version = "0.20261031.13"
+version = "0.20261031.14"
 edition = "2024"
 
 [lints.rust]
