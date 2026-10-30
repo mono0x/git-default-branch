@@ -10,6 +10,12 @@ Run `cargo clippy --all-targets --all-features -- -D warnings` separately.
 
 ## Releasing
 
+Configure the `RELEASE_APP_CLIENT_ID` repository variable and the
+`RELEASE_APP_PRIVATE_KEY` secret for a GitHub App installed on this repository.
+The App needs Contents write permission and must be allowed to push to `main`
+under the repository's branch rules. The workflow uses its token to push the
+version commit and tag.
+
 Wait for the latest push CI run on `main` to succeed, then run the Release
 workflow manually on `main`. It uses `cargo-release` to update `Cargo.toml` and
 `Cargo.lock`, commit the version change, and create a `v0.YYYYMMDD.N` tag.
